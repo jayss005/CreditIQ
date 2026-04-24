@@ -1,0 +1,124 @@
+/* ── Applicant Form field-level styles ────────────────── */
+
+/* Segmented toggle */
+.seg-toggle {
+  @apply flex rounded-input border border-border overflow-hidden;
+}
+.seg-toggle button {
+  @apply flex-1 py-2 text-sm font-medium transition-colors duration-200 text-body;
+}
+.seg-toggle button[data-active="true"] {
+  @apply bg-primary text-white;
+}
+.seg-toggle button[data-active="false"]:hover {
+  @apply bg-blue-50;
+}
+
+/* Yes/No toggle pill */
+.yn-toggle {
+  @apply relative flex items-center w-[88px] h-8 rounded-full cursor-pointer
+         transition-colors duration-300 select-none;
+}
+.yn-toggle[data-on="true"] {
+  @apply bg-primary;
+}
+.yn-toggle[data-on="false"] {
+  @apply bg-gray-300;
+}
+.yn-toggle .knob {
+  @apply absolute top-0.5 h-7 w-7 rounded-full bg-white shadow transition-transform duration-300;
+}
+.yn-toggle[data-on="true"] .knob {
+  @apply translate-x-[56px];
+}
+.yn-toggle[data-on="false"] .knob {
+  @apply translate-x-0.5;
+}
+.yn-toggle .label {
+  @apply text-xs font-medium text-white absolute;
+}
+.yn-toggle[data-on="true"] .label {
+  @apply left-2.5;
+}
+.yn-toggle[data-on="false"] .label {
+  @apply right-2.5 text-gray-600;
+}
+
+/* Stepper */
+.stepper {
+  @apply flex items-center gap-0;
+}
+.stepper button {
+  @apply w-9 h-9 flex items-center justify-center rounded-input border border-border
+         text-body hover:bg-blue-50 transition-colors duration-150 font-semibold text-base;
+}
+.stepper .value {
+  @apply w-12 h-9 flex items-center justify-center border-y border-border
+         text-heading font-semibold text-sm;
+}
+
+/* Styled select */
+.styled-select {
+  @apply w-full h-10 px-3 rounded-input border border-border bg-white text-heading
+         text-sm appearance-none cursor-pointer transition-all duration-200
+         focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+/* Currency input wrapper */
+.currency-wrap {
+  @apply relative;
+}
+.currency-wrap .prefix {
+  @apply absolute left-3 top-1/2 -translate-y-1/2 text-hint text-sm font-medium pointer-events-none;
+}
+.currency-wrap input {
+  @apply pl-7;
+}
+
+/* Number input with suffix */
+.suffix-wrap {
+  @apply relative;
+}
+.suffix-wrap .suffix {
+  @apply absolute right-3 top-1/2 -translate-y-1/2 text-hint text-xs pointer-events-none;
+}
+
+/* Field input base */
+.field-input {
+  @apply w-full h-10 px-3 rounded-input border border-border bg-white text-heading
+         text-sm transition-all duration-200
+         focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary;
+}
+.field-input.error {
+  @apply border-danger focus:ring-danger/20 focus:border-danger;
+}
+
+/* Field label */
+.field-label {
+  @apply block text-xs font-medium text-body mb-1.5;
+}
+
+/* Field error text */
+.field-error {
+  @apply text-xs text-danger mt-1;
+}
+
+/* Searchable select dropdown */
+.search-select {
+  @apply relative;
+}
+.search-select .dropdown {
+  @apply absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-border
+         rounded-input shadow-lg max-h-48 overflow-y-auto py-1;
+}
+.search-select .dropdown-item {
+  @apply px-3 py-2 text-sm text-body hover:bg-blue-50 hover:text-primary cursor-pointer
+         transition-colors duration-150;
+}
+.search-select .dropdown-item.active {
+  @apply bg-primary/10 text-primary font-medium;
+}
