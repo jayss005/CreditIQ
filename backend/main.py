@@ -4,16 +4,33 @@ CreditIQ — FastAPI backend for credit approval prediction.
 
 from __future__ import annotations
 
+import logging
 import os
+import traceback
 from pathlib import Path
 from typing import List
 
 import joblib
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+
+# ──────────────────────────────────────────────
+# Logging setup
+# ──────────────────────────────────────────────
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+logging.basicConfig(
+    level=getattr(logging, LOG_LEVEL, logging.INFO),
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler("api.log", mode="a")
+    ]
+)
+logger = logging.getLogger("CreditIQ")
 
 # ──────────────────────────────────────────────
 # App setup
@@ -24,18 +41,25 @@ app = FastAPI(
     description="Credit approval prediction powered by Gradient Boosting.",
 )
 
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "").split(",")
+allowed_origins = [origin.strip() for origin in CORS_ORIGINS if origin.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:5174",
-    ],
+    allow_origins=allowed_origins if allowed_origins else ["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled exception: {exc}")
+    logger.error(traceback.format_exc())
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "An internal server error occurred. Please try again later."},
+    )
 
 # ──────────────────────────────────────────────
 # Model loading
@@ -51,11 +75,16 @@ model = None
 @app.on_event("startup")
 def load_model() -> None:
     global model
+    logger.info("Application starting up...")
     try:
         model = joblib.load(MODEL_PATH)
-        print(f"✅ Model loaded from {MODEL_PATH}")
+        logger.info(f"Model successfully loaded from {MODEL_PATH}")
     except FileNotFoundError:
-        print(f"⚠️  Model file not found at {MODEL_PATH}. /predict will return 503.")
+        logger.error(f"Model file not found at {MODEL_PATH}. /predict will return 503.")
+
+@app.on_event("shutdown")
+def shutdown_event():
+    logger.info("Application shutting down...")
 
 
 # ──────────────────────────────────────────────
@@ -206,6 +235,15 @@ def build_feature_vector(data: ApplicantInput) -> pd.DataFrame:
 # ──────────────────────────────────────────────
 # Endpoints
 # ──────────────────────────────────────────────
+@app.get("/")
+def read_root():
+    return {
+        "name": "CreditIQ Prediction API",
+        "version": "1.0.0",
+        "status": "active"
+    }
+
+
 @app.get("/health", response_model=HealthResponse)
 def health_check() -> HealthResponse:
     return HealthResponse(status="ok")
@@ -220,9 +258,12 @@ def predict(payload: ApplicantInput) -> PredictionResponse:
     prediction = int(model.predict(X)[0])
     probabilities = model.predict_proba(X)[0]
 
+    prob_approved = round(float(probabilities[1]), 4)
+    logger.info(f"Prediction requested. Approved probability: {prob_approved}")
+
     return PredictionResponse(
         prediction=prediction,
-        probability_approved=round(float(probabilities[1]), 4),
+        probability_approved=prob_approved,
         probability_rejected=round(float(probabilities[0]), 4),
     )
 
